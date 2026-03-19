@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Admin Dashboard</h2>
+        <div class="card p-4 shadow-sm border-0 rounded-3">
+            <h4 class="text-primary">All Properties</h4>
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Photo</th>
+                        <th>Owner</th>
+                        <th>Address</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for property in properties %}
+                    <tr>
+                        <td>{{ property.property_id }}</td>
+                        <td>
+                            {% if property.photo %}
+                            <img src="{{ property.photo.url }}" alt="Property"
+                                style="width: 50px; height: 50px; object-fit: cover;" class="rounded shadow-sm">
+                            {% else %}
+                            <span class="text-muted small"><i class="bi bi-image"></i> None</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ property.owner.username }}</td>
+                        <td class="fw-bold">{{ property.address }}</td>
+                        <td>₹{{ property.price }}</td>
+                        <td>
+                            <span
+                                class="badge {% if property.status == 'Pending' %}bg-warning{% elif property.status == 'Live' %}bg-success{% else %}bg-primary{% endif %}">
+                                {{ property.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if property.status == 'Pending' %}
+                            <a href="{% url 'approve_property' property.property_id %}"
+                                class="btn btn-sm btn-success fw-bold">Approve</a>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">No properties found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

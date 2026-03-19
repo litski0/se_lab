@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2 class="mb-4">Seeker Dashboard</h2>
+        <div class="card p-4 shadow-sm border-0 rounded-3">
+            <h4 class="text-primary">My Bookings</h4>
+            <table class="table table-hover mt-3 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Photo</th>
+                        <th>Property</th>
+                        <th>Start Date</th>
+                        <th>Duration (Months)</th>
+                        <th>Total Amount</th>
+                        <th>Payment Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for booking in bookings %}
+                    <tr>
+                        <td class="fw-bold">{{ booking.booking_id }}</td>
+                        <td>
+                            {% if booking.property.photo %}
+                            <img src="{{ booking.property.photo.url }}" alt="Property"
+                                style="width: 50px; height: 50px; object-fit: cover;" class="rounded shadow-sm">
+                            {% else %}
+                            <span class="text-muted small"><i class="bi bi-image"></i> None</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ booking.property.address }}</td>
+                        <td>{{ booking.start_date }}</td>
+                        <td>{{ booking.duration_months }}</td>
+                        <td>₹{{ booking.total_amount }}</td>
+                        <td>
+                            <span
+                                class="badge {% if booking.payment_status == 'Paid' %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ booking.payment_status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">You have no active bookings.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
