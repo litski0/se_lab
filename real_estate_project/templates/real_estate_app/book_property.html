@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h2 class="mb-4">Book Property</h2>
+            <div class="mb-4 p-3 bg-light rounded border">
+                <h4>Property Details</h4>
+                <p><strong>Address:</strong> {{ property.address }}</p>
+                <p><strong>Monthly Rent:</strong> ₹<span id="monthly-rent">{{ property.price }}</span></p>
+                <p><strong>Deposit (1 Month Rent):</strong> ₹<span id="deposit">{{ property.price }}</span></p>
+            </div>
+
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                <div class="mt-4 mb-4 p-3 alert alert-info">
+                    <h4>Total Estimated Amount: ₹<span id="total-amount-display">0.00</span></h4>
+                    <small>Formula: (Duration in Months × Monthly Rent) + Deposit</small>
+                </div>
+
+                <button type="submit" class="btn btn-success btn-lg w-100">Confirm Booking & Pay</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const durationInput = document.querySelector("input[name='duration_months']");
+        const rentElement = document.getElementById("monthly-rent");
+        const depositElement = document.getElementById("deposit");
+        const totalDisplayElement = document.getElementById("total-amount-display");
+
+        if (durationInput && rentElement && depositElement && totalDisplayElement) {
+            const rent = parseFloat(rentElement.textContent);
+            const deposit = parseFloat(depositElement.textContent);
+
+            function calculateTotal() {
+                const duration = parseInt(durationInput.value) || 0;
+                if (duration > 0) {
+                    const total = (duration * rent) + deposit;
+                    totalDisplayElement.textContent = total.toFixed(2);
+                } else {
+                    totalDisplayElement.textContent = "0.00";
+                }
+            }
+
+            durationInput.addEventListener("input", calculateTotal);
+            calculateTotal(); // Call initially
+        }
+    });
+</script>
+{% endblock %}

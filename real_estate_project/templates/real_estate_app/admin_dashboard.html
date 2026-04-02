@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Admin Dashboard</h2>
+            <span class="badge bg-primary fs-6 py-2 px-3 shadow-sm"><i class="bi bi-shield-lock me-1"></i> Admin
+                Privileges</span>
+        </div>
+        <div class="card p-0 shadow-sm border-0 rounded-3 overflow-hidden">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="text-primary mb-0 fw-bold"><i class="bi bi-buildings me-2"></i> All Properties</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Photo</th>
+                            <th>Owner</th>
+                            <th>Address</th>
+                            <th>Price / mo</th>
+                            <th>Status</th>
+                            <th class="pe-4 text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        {% for property in properties %}
+                        <tr>
+                            <td class="ps-4 text-muted fw-bold">#{{ property.property_id }}</td>
+                            <td>
+                                {% if property.photo %}
+                                <img src="{{ property.photo.url }}" alt="Property photo"
+                                    style="width: 55px; height: 55px; object-fit: cover;"
+                                    class="rounded border shadow-sm">
+                                {% else %}
+                                <div class="bg-light rounded border d-flex align-items-center justify-content-center text-muted"
+                                    style="width: 55px; height: 55px;">
+                                    <i class="bi bi-image fs-5"></i>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td>{{ property.owner.username }}</td>
+                            <td class="fw-bold">{{ property.address }}</td>
+                            <td><span class="text-success fw-bold">₹{{ property.price }}</span></td>
+                            <td>
+                                <span
+                                    class="badge rounded-pill {% if property.status == 'Pending' %}bg-warning text-dark{% elif property.status == 'Live' %}bg-success{% elif property.status == 'Rejected' %}bg-danger{% elif property.status == 'Booked' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                                    {{ property.status }}
+                                </span>
+                            </td>
+                            <td class="pe-4 text-end">
+                                {% if property.status == 'Pending' %}
+                                <a href="{% url 'approve_property' property.property_id %}"
+                                    class="btn btn-sm btn-success fw-bold shadow-sm" title="Approve Property">
+                                    <i class="bi bi-check-circle me-1"></i> Approve
+                                </a>
+                                <a href="{% url 'reject_property' property.property_id %}"
+                                    class="btn btn-sm btn-danger fw-bold shadow-sm ms-1" title="Reject Property">
+                                    <i class="bi bi-x-circle me-1"></i> Reject
+                                </a>
+                                {% elif property.status == 'Live' %}
+                                <span class="text-success fw-bold"><i class="bi bi-check2-all"></i> Approved</span>
+                                {% elif property.status == 'Rejected' %}
+                                <span class="text-danger fw-bold"><i class="bi bi-x-circle"></i> Rejected</span>
+                                {% elif property.status == 'Booked' %}
+                                <span class="text-info fw-bold"><i class="bi bi-calendar-check"></i> Booked</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                                <p class="mb-0 fs-5">No properties found in the system.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
