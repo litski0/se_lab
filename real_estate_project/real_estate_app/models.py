@@ -22,6 +22,7 @@ class Property(models.Model):
         ('Pending', 'Pending'),
         ('Live', 'Live'),
         ('Booked', 'Booked'),
+        ('Rejected', 'Rejected'),
     )
     property_id = models.AutoField(primary_key=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='properties')

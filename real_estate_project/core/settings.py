@@ -123,8 +123,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 SASS_PROCESSOR_ROOT = STATIC_ROOT
 
 AUTH_USER_MODEL = 'real_estate_app.User'
-LOGIN_REDIRECT_URL = 'home'
+LOGIN_REDIRECT_URL = 'dashboard'
 LOGIN_URL = '/login/'
+LOGOUT_REDIRECT_URL = 'home'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

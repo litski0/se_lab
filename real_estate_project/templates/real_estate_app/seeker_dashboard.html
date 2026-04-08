@@ -2,51 +2,66 @@
 {% block content %}
 <div class="row">
     <div class="col-12">
-        <h2 class="mb-4">Seeker Dashboard</h2>
-        <div class="card p-4 shadow-sm border-0 rounded-3">
-            <h4 class="text-primary">My Bookings</h4>
-            <table class="table table-hover mt-3 align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Booking ID</th>
-                        <th>Photo</th>
-                        <th>Property</th>
-                        <th>Start Date</th>
-                        <th>Duration (Months)</th>
-                        <th>Total Amount</th>
-                        <th>Payment Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for booking in bookings %}
-                    <tr>
-                        <td class="fw-bold">{{ booking.booking_id }}</td>
-                        <td>
-                            {% if booking.property.photo %}
-                            <img src="{{ booking.property.photo.url }}" alt="Property"
-                                style="width: 50px; height: 50px; object-fit: cover;" class="rounded shadow-sm">
-                            {% else %}
-                            <span class="text-muted small"><i class="bi bi-image"></i> None</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ booking.property.address }}</td>
-                        <td>{{ booking.start_date }}</td>
-                        <td>{{ booking.duration_months }}</td>
-                        <td>₹{{ booking.total_amount }}</td>
-                        <td>
-                            <span
-                                class="badge {% if booking.payment_status == 'Paid' %}bg-success{% else %}bg-warning{% endif %}">
-                                {{ booking.payment_status }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" class="text-center py-4 text-muted">You have no active bookings.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Seeker Dashboard</h2>
+            <span class="badge bg-primary fs-6 py-2 px-3 shadow-sm"><i class="bi bi-person-fill me-1"></i> Seeker
+                Profile</span>
+        </div>
+        <div class="card p-0 shadow-sm border-0 rounded-3 overflow-hidden">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="text-primary mb-0 fw-bold"><i class="bi bi-calendar2-check get-2"></i> My Bookings</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="ps-4">Booking ID</th>
+                            <th>Photo</th>
+                            <th>Property</th>
+                            <th>Start Date</th>
+                            <th>Duration (Months)</th>
+                            <th>Total Amount</th>
+                            <th class="pe-4 text-end">Payment Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        {% for booking in bookings %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-muted">#{{ booking.booking_id }}</td>
+                            <td>
+                                {% if booking.property.photo %}
+                                <img src="{{ booking.property.photo.url }}" alt="Property photo"
+                                    style="width: 55px; height: 55px; object-fit: cover;"
+                                    class="rounded border shadow-sm">
+                                {% else %}
+                                <div class="bg-light rounded border d-flex align-items-center justify-content-center text-muted"
+                                    style="width: 55px; height: 55px;">
+                                    <i class="bi bi-image fs-5"></i>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold">{{ booking.property.address }}</td>
+                            <td><i class="bi bi-calendar-event me-1 text-muted"></i> {{ booking.start_date }}</td>
+                            <td>{{ booking.duration_months }}</td>
+                            <td><span class="text-success fw-bold">₹{{ booking.total_amount }}</span></td>
+                            <td class="pe-4 text-end">
+                                <span
+                                    class="badge rounded-pill {% if booking.payment_status == 'Paid' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                    {{ booking.payment_status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-journal-x fs-1 d-block mb-3"></i>
+                                <p class="mb-0 fs-5">You have no active bookings.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

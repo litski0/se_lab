@@ -1,46 +1,63 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="row mb-4">
+<div class="row mb-5">
     <div class="col-12">
-        <h2>Property Catalog</h2>
-        <form method="get" class="d-flex gap-2 align-items-end mt-3">
-            <div class="form-group flex-grow-1">
-                <label for="address">Location / Address</label>
-                <input type="text" name="address" id="address" class="form-control" value="{{ request.GET.address }}"
-                    placeholder="Search by location...">
-            </div>
-            <div class="form-group flex-grow-1">
-                <label for="max_price">Max Price (per month)</label>
-                <input type="number" name="max_price" id="max_price" class="form-control"
-                    value="{{ request.GET.max_price }}" placeholder="Max price limit...">
-            </div>
-            <button type="submit" class="btn btn-primary">Filter</button>
-        </form>
+        <h2 class="mb-4 fw-bold"><i class="bi bi-houses me-2 text-primary"></i> Property Catalog</h2>
+        <div class="card border-0 shadow-sm rounded-4 p-4 bg-light">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="address" class="form-label fw-bold text-muted small"><i class="bi bi-geo-alt me-1"></i>
+                        Location / Address</label>
+                    <input type="text" name="address" id="address"
+                        class="form-control form-control-lg border-0 shadow-sm" value="{{ request.GET.address }}"
+                        placeholder="Search by location...">
+                </div>
+                <div class="col-md-5">
+                    <label for="max_price" class="form-label fw-bold text-muted small"><i class="bi bi-tag me-1"></i>
+                        Maximum Price</label>
+                    <div class="input-group input-group-lg shadow-sm">
+                        <span class="input-group-text bg-white border-0 text-muted">₹</span>
+                        <input type="number" name="max_price" id="max_price" class="form-control border-0"
+                            value="{{ request.GET.max_price }}" placeholder="Max price per month">
+                    </div>
+                </div>
+                <div class="col-md-2 d-grid">
+                    <button type="submit" class="btn btn-primary btn-lg shadow-sm fw-bold"><i
+                            class="bi bi-search me-1"></i> Search</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
-<div class="row">
+<div class="row g-4">
     {% for property in properties %}
-    <div class="col-md-4 mb-4">
-        <div class="card property-card h-100 shadow-sm border-0 rounded-3 overflow-hidden">
+    <div class="col-md-6 col-lg-4 mb-3">
+        <div class="card property-card h-100 shadow-sm border-0 rounded-4 overflow-hidden position-relative"
+            style="transition: transform 0.2s ease, box-shadow 0.2s ease;"
+            onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 .5rem 1rem rgba(0,0,0,.15)';"
+            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 .125rem .25rem rgba(0,0,0,.075)';">
+            <span class="position-absolute top-0 end-0 m-3 badge bg-success fs-6 rounded-pill z-1 shadow-sm"><i
+                    class="bi bi-check-circle me-1"></i> Available</span>
             {% if property.photo %}
             <img src="{{ property.photo.url }}" class="card-img-top border-bottom" alt="Property Image"
-                style="height: 200px; object-fit: cover;">
+                style="height: 240px; object-fit: cover;">
             {% else %}
-            <div class="card-img-top bg-light d-flex align-items-center justify-content-center text-muted border-bottom"
-                style="height: 200px;">
-                <i class="bi bi-image" style="font-size: 2rem;"></i> No Image Available
+            <div class="card-img-top bg-light d-flex flex-column align-items-center justify-content-center text-muted border-bottom"
+                style="height: 240px;">
+                <i class="bi bi-image" style="font-size: 3rem;"></i>
+                <span class="mt-2 small fw-bold">No Photo</span>
             </div>
             {% endif %}
-            <div class="card-body d-flex flex-column">
-                <h5 class="card-title text-primary fw-bold">{{ property.address }}</h5>
-                <h6 class="card-subtitle mb-3 text-dark fs-5">₹{{ property.price }} <span class="text-muted fs-6">/
-                        month</span></h6>
-                <p class="card-text mb-3">
-                    <span class="badge bg-success">Status: {{ property.status }}</span>
-                </p>
+            <div class="card-body d-flex flex-column p-4">
+                <h5 class="card-title text-dark fw-bold mb-1 text-truncate" title="{{ property.address }}">
+                    {{ property.address }}
+                </h5>
+                <h4 class="card-subtitle mt-2 mb-3 text-primary fw-bold">₹{{ property.price }} <span
+                        class="text-muted fs-6 fw-normal">/ mo</span></h4>
                 <a href="{% url 'book_property' property.property_id %}"
-                    class="btn btn-primary mt-auto fw-bold shadow-sm">Book Now</a>
+                    class="btn btn-outline-primary mt-auto fw-bold py-2 w-100"><i class="bi bi-calendar-check me-2"></i>
+                    Book Property</a>
             </div>
         </div>
     </div>

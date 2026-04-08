@@ -34,7 +34,7 @@
                         <td>₹{{ property.price }}</td>
                         <td>
                             <span
-                                class="badge {% if property.status == 'Pending' %}bg-warning{% elif property.status == 'Live' %}bg-success{% else %}bg-primary{% endif %}">
+                                class="badge {% if property.status == 'Pending' %}bg-warning text-dark{% elif property.status == 'Live' %}bg-success{% elif property.status == 'Rejected' %}bg-danger{% elif property.status == 'Booked' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
                                 {{ property.status }}
                             </span>
                         </td>

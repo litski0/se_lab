@@ -14,6 +14,8 @@ class MockPaymentService:
 def home(request):
     # Public landing page / web
     # site
+    if request.user.is_authenticated:
+        return redirect('dashboard')
     return render(request, 'real_estate_app/index.html')
 
 def register(request):
@@ -129,4 +131,15 @@ def approve_property(request, property_id):
     property_obj.status = 'Live'
     property_obj.save()
     messages.success(request, 'Property approved and is now Live.')
+    return redirect('dashboard')
+
+@login_required
+def reject_property(request, property_id):
+    if not (request.user.is_admin or request.user.is_superuser):
+        return redirect('dashboard')
+        
+    property_obj = get_object_or_404(Property, property_id=property_id)
+    property_obj.status = 'Rejected'
+    property_obj.save()
+    messages.success(request, 'Property rejected.')
     return redirect('dashboard')
