@@ -56,8 +56,14 @@ class PropertyForm(forms.ModelForm):
             'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter property address...', 'id': 'id_address'}),
             'latitude': forms.HiddenInput(attrs={'id': 'id_latitude'}),
             'longitude': forms.HiddenInput(attrs={'id': 'id_longitude'}),
-            'price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter price per month...'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter price per month...', 'min': '1', 'oninput': "this.value = Math.abs(this.value) > 0 ? Math.abs(this.value) : ''"}),
         }
+
+    def clean_price(self):
+        price = self.cleaned_data.get('price')
+        if price is None or price < 1:
+            raise forms.ValidationError("Price must be a positive amount.")
+        return price
         
 class BookingForm(forms.ModelForm):
     class Meta:
