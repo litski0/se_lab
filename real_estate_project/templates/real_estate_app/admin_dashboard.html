@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <div class="row">
     <div class="col-12">
@@ -50,22 +51,9 @@
                                 </span>
                             </td>
                             <td class="pe-4 text-end">
-                                {% if property.status == 'Pending' %}
-                                <a href="{% url 'approve_property' property.property_id %}"
-                                    class="btn btn-sm btn-success fw-bold shadow-sm" title="Approve Property">
-                                    <i class="bi bi-check-circle me-1"></i> Approve
+                                <a href="{% url 'admin_property_detail' property.property_id %}" class="btn btn-sm btn-primary shadow-sm fw-bold">
+                                    <i class="bi bi-eye"></i> View Details
                                 </a>
-                                <a href="{% url 'reject_property' property.property_id %}"
-                                    class="btn btn-sm btn-danger fw-bold shadow-sm ms-1" title="Reject Property">
-                                    <i class="bi bi-x-circle me-1"></i> Reject
-                                </a>
-                                {% elif property.status == 'Live' %}
-                                <span class="text-success fw-bold"><i class="bi bi-check2-all"></i> Approved</span>
-                                {% elif property.status == 'Rejected' %}
-                                <span class="text-danger fw-bold"><i class="bi bi-x-circle"></i> Rejected</span>
-                                {% elif property.status == 'Booked' %}
-                                <span class="text-info fw-bold"><i class="bi bi-calendar-check"></i> Booked</span>
-                                {% endif %}
                             </td>
                         </tr>
                         {% empty %}
@@ -79,6 +67,8 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
         </div>
     </div>
 </div>

@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block extra_head %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+    #propertyMap { height: 400px; width: 100%; border-radius: 0 0 8px 8px; z-index: 1; }
+    .carousel-item img { height: 400px; object-fit: cover; border-radius: 0 0 8px 8px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Property Details #{{ property.property_id }}</h2>
+    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary shadow-sm"><i class="bi bi-arrow-left"></i> Back to Dashboard</a>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Left Column: Media & Map -->
+    <div class="col-md-7">
+        
+        <!-- Gallery Header -->
+        {% if property.images.all or property.photo %}
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-images text-primary me-2"></i> Property Gallery</h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="propertyCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        {% if property.photo %}
+                        <div class="carousel-item active">
+                            <img src="{{ property.photo.url }}" class="d-block w-100" alt="Main Photo">
+                        </div>
+                        {% endif %}
+                        {% for img in property.images.all %}
+                        <div class="carousel-item {% if not property.photo and forloop.first %}active{% endif %}">
+                            <img src="{{ img.image.url }}" class="d-block w-100" alt="Additional Property Photo">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if property.images.count > 0 or not property.photo and property.images.count > 1 %}
+                    <button class="carousel-control-prev" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon bg-dark rounded-circle p-2 shadow" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon bg-dark rounded-circle p-2 shadow" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Interactive Map -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-geo-alt text-primary me-2"></i> Location Base</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if property.latitude and property.longitude %}
+                <div id="propertyMap"></div>
+                {% else %}
+                <div class="d-flex align-items-center justify-content-center bg-light text-muted" style="height: 400px; border-radius: 0 0 8px 8px;">
+                    <div class="text-center">
+                        <i class="bi bi-geo-alt-fill fs-1 d-block mb-2"></i>
+                        <p class="mb-0">No precise coordinates provided.</p>
+                        <p class="small">{{ property.address }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Details & Seeker Info -->
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-house text-primary me-2"></i> Property Info</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><span class="fw-bold text-muted small d-block">Address</span> {{ property.address }}</p>
+                <p class="mb-2"><span class="fw-bold text-muted small d-block">Price / mo</span> <span class="text-success fw-bold fs-5">₹{{ property.price }}</span></p>
+                <p class="mb-0"><span class="fw-bold text-muted small d-block">Status</span> 
+                    <span class="badge rounded-pill {% if property.status == 'Pending' %}bg-warning text-dark{% elif property.status == 'Live' %}bg-success{% elif property.status == 'Rejected' %}bg-danger{% elif property.status == 'Booked' %}bg-info text-dark{% else %}bg-secondary{% endif %} fs-6">
+                        {{ property.status }}
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        {% if property.status == 'Booked' %}
+        <div class="card border-info shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold text-info"><i class="bi bi-person-check-fill me-2"></i> Booked By</h5>
+            </div>
+            <div class="card-body">
+                {% with booking=property.bookings.first %}
+                {% if booking %}
+                <div class="d-flex align-items-center mb-3">
+                    <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-4 me-3 shadow-sm" style="width: 50px; height: 50px;">
+                        {{ booking.seeker.username|make_list|first|upper }}
+                    </div>
+                    <div>
+                        <h5 class="mb-0 fw-bold">{% if booking.seeker.first_name %}{{ booking.seeker.first_name }} {{ booking.seeker.last_name }}{% else %}{{ booking.seeker.username }}{% endif %}</h5>
+                        <span class="badge bg-secondary">Seeker</span>
+                    </div>
+                </div>
+                <p class="mb-0 text-muted"><i class="bi bi-telephone me-2"></i> {{ booking.seeker.phone_number|default:"Not provided" }}</p>
+                <p class="mb-0 text-muted mt-2 small"><i class="bi bi-calendar2-check-fill me-2"></i> Duration: {{ booking.duration_months }} months from {{ booking.start_date }}</p>
+                {% else %}
+                <p class="text-muted">Booking record not found.</p>
+                {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+        {% elif property.status == 'Live' %}
+        <div class="alert alert-success shadow-sm border-0"><i class="bi bi-check-circle-fill me-2"></i> Finding tenants... Your property is visible on the platform.</div>
+        {% elif property.status == 'Pending' %}
+        <div class="alert alert-warning shadow-sm border-0 text-dark"><i class="bi bi-hourglass-top me-2"></i> Your property is awaiting admin approval.</div>
+        {% elif property.status == 'Rejected' %}
+        <div class="alert alert-danger shadow-sm border-0"><i class="bi bi-x-circle-fill me-2"></i> This property has been rejected by the admin.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if property.latitude and property.longitude %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const lat = parseFloat("{{ property.latitude }}");
+        const lng = parseFloat("{{ property.longitude }}");
+        
+        let map = L.map('propertyMap').setView([lat, lng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        L.marker([lat, lng]).addTo(map).bindPopup("<b>Property Location</b><br>{{ property.address|escapejs }}").openPopup();
+    });
+</script>
+{% endif %}
+{% endblock %}

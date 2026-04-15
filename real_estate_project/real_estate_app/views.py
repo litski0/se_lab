@@ -32,10 +32,10 @@ def register(request):
 @login_required
 def dashboard(request):
     if request.user.is_admin or request.user.is_superuser:
-        properties = Property.objects.all()
+        properties = Property.objects.all().order_by('-property_id')
         return render(request, 'real_estate_app/admin_dashboard.html', {'properties': properties})
     elif request.user.is_owner:
-        properties = Property.objects.filter(owner=request.user)
+        properties = Property.objects.filter(owner=request.user).order_by('-property_id')
         return render(request, 'real_estate_app/owner_dashboard.html', {'properties': properties})
     elif request.user.is_seeker:
         bookings = Booking.objects.filter(seeker=request.user)
@@ -54,7 +54,18 @@ def add_property(request):
             property = form.save(commit=False)
             property.owner = request.user
             property.status = 'Pending'
+            
+            files = request.FILES.getlist('property_photos')
+            if files:
+                property.photo = files[0]
+                
             property.save()
+            # Save gallery images
+            from .models import PropertyImage
+            if len(files) > 1:
+                for f in files[1:]:
+                    PropertyImage.objects.create(property=property, image=f)
+
             messages.success(request, 'Property listed successfully and is pending approval.')
             return redirect('dashboard')
     else:
@@ -123,6 +134,49 @@ def book_property(request, property_id):
     })
 
 @login_required
+def admin_property_detail(request, property_id):
+    if not (request.user.is_admin or request.user.is_superuser):
+        return redirect('dashboard')
+        
+    property_obj = get_object_or_404(Property, property_id=property_id)
+    return render(request, 'real_estate_app/admin_property_detail.html', {'property': property_obj})
+
+@login_required
+def owner_property_detail(request, property_id):
+    if not request.user.is_owner:
+        return redirect('dashboard')
+        
+    property_obj = get_object_or_404(Property, property_id=property_id, owner=request.user)
+    return render(request, 'real_estate_app/owner_property_detail.html', {'property': property_obj})
+
+@login_required
+def seeker_property_detail(request, property_id):
+    if not request.user.is_seeker:
+        return redirect('dashboard')
+        
+    property_obj = get_object_or_404(Property, property_id=property_id)
+    form = BookingForm()
+    
+    if request.method == 'POST' and property_obj.status == 'Live':
+        form = BookingForm(request.POST)
+        if form.is_valid():
+            booking = form.save(commit=False)
+            duration = booking.duration_months
+            deposit = property_obj.price
+            total_amount = (property_obj.price * duration) + deposit
+            
+            # Register pending checkout
+            booking.property = property_obj
+            booking.seeker = request.user
+            booking.total_amount = total_amount
+            booking.payment_status = 'Pending'
+            booking.save()
+            
+            return redirect('mock_payment', booking_id=booking.booking_id)
+                
+    return render(request, 'real_estate_app/seeker_property_detail.html', {'property': property_obj, 'form': form})
+
+@login_required
 def approve_property(request, property_id):
     if not (request.user.is_admin or request.user.is_superuser):
         return redirect('dashboard')
@@ -143,3 +197,33 @@ def reject_property(request, property_id):
     property_obj.save()
     messages.success(request, 'Property rejected.')
     return redirect('dashboard')
+
+@login_required
+def mock_payment(request, booking_id):
+    booking = get_object_or_404(Booking, booking_id=booking_id, seeker=request.user)
+    
+    if booking.payment_status == 'Paid':
+        return redirect('dashboard')
+        
+    property_obj = booking.property
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'pay':
+            payment_success = MockPaymentService.processTransaction(booking.total_amount)
+            if payment_success:
+                property_obj.status = 'Booked'
+                property_obj.save()
+                
+                booking.payment_status = 'Paid'
+                booking.save()
+                
+                messages.success(request, f'Payment via Razorpay Mockup successful! Amount paid: ₹{booking.total_amount}')
+                return redirect('dashboard')
+            else:
+                messages.error(request, 'Payment failed during processing.')
+        elif action == 'cancel':
+            messages.info(request, 'Payment transaction cancelled.')
+            return redirect('seeker_property_detail', property_id=property_obj.property_id)
+            
+    return render(request, 'real_estate_app/payment_mockup.html', {'booking': booking})

@@ -30,14 +30,33 @@ class CustomLoginForm(AuthenticationForm):
             field.widget.attrs['class'] = 'form-control'
             field.widget.attrs['placeholder'] = field.label
 
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
+
+class MultipleFileField(forms.FileField):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput(attrs={'class': 'form-control'}))
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        single_file_clean = super().clean
+        if isinstance(data, (list, tuple)):
+            result = [single_file_clean(d, initial) for d in data]
+        else:
+            result = single_file_clean(data, initial)
+        return result
+
 class PropertyForm(forms.ModelForm):
+    property_photos = MultipleFileField(label="Property Photos", required=False)
+
     class Meta:
         model = Property
-        fields = ['address', 'price', 'photo']
+        fields = ['address', 'latitude', 'longitude', 'price']
         widgets = {
-            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter property address...'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Enter property address...', 'id': 'id_address'}),
+            'latitude': forms.HiddenInput(attrs={'id': 'id_latitude'}),
+            'longitude': forms.HiddenInput(attrs={'id': 'id_longitude'}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter price per month...'}),
-            'photo': forms.FileInput(attrs={'class': 'form-control'}),
         }
         
 class BookingForm(forms.ModelForm):
@@ -46,4 +65,11 @@ class BookingForm(forms.ModelForm):
         fields = ['start_date', 'duration_months']
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'duration_months': forms.NumberInput(attrs={'min': '1', 'oninput': "this.value = Math.abs(this.value) > 0 ? Math.abs(this.value) : ''"})
         }
+
+    def clean_duration_months(self):
+        duration = self.cleaned_data.get('duration_months')
+        if duration is None or duration < 1:
+            raise forms.ValidationError("Duration must be at least 1 month.")
+        return duration

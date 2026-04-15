@@ -3,49 +3,65 @@
 <div class="row">
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>Owner Dashboard</h2>
-            <a href="{% url 'add_property' %}" class="btn btn-primary">Add New Property</a>
+            <h2><i class="bi bi-person-workspace text-primary me-2"></i> Owner Dashboard</h2>
+            <a href="{% url 'add_property' %}" class="btn btn-primary shadow-sm fw-bold"><i class="bi bi-plus-lg me-1"></i> Add Property</a>
         </div>
-        <div class="card p-4 shadow-sm border-0 rounded-3">
-            <h4 class="text-primary">My Properties</h4>
-            <table class="table table-hover mt-3 align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>ID</th>
-                        <th>Photo</th>
-                        <th>Address</th>
-                        <th>Price</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for property in properties %}
-                    <tr>
-                        <td>{{ property.property_id }}</td>
-                        <td>
-                            {% if property.photo %}
-                            <img src="{{ property.photo.url }}" alt="Property"
-                                style="width: 60px; height: 60px; object-fit: cover;" class="rounded shadow-sm">
-                            {% else %}
-                            <span class="text-muted small"><i class="bi bi-image"></i> No Image</span>
-                            {% endif %}
-                        </td>
-                        <td class="fw-bold">{{ property.address }}</td>
-                        <td>₹{{ property.price }}</td>
-                        <td>
-                            <span
-                                class="badge {% if property.status == 'Pending' %}bg-warning text-dark{% elif property.status == 'Live' %}bg-success{% elif property.status == 'Rejected' %}bg-danger{% elif property.status == 'Booked' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
-                                {{ property.status }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center py-4 text-muted">You haven't listed any properties yet.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="card p-0 shadow-sm border-0 rounded-3 overflow-hidden">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="text-primary mb-0 fw-bold"><i class="bi bi-houses me-2"></i> My Properties</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Photo</th>
+                            <th>Address</th>
+                            <th>Price / mo</th>
+                            <th>Status</th>
+                            <th class="pe-4 text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        {% for property in properties %}
+                        <tr>
+                            <td class="ps-4 text-muted fw-bold">#{{ property.property_id }}</td>
+                            <td>
+                                {% if property.photo %}
+                                <img src="{{ property.photo.url }}" alt="Property photo"
+                                    style="width: 55px; height: 55px; object-fit: cover;"
+                                    class="rounded border shadow-sm">
+                                {% else %}
+                                <div class="bg-light rounded border d-flex align-items-center justify-content-center text-muted"
+                                    style="width: 55px; height: 55px;">
+                                    <i class="bi bi-image fs-5"></i>
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold">{{ property.address }}</td>
+                            <td><span class="text-success fw-bold">₹{{ property.price }}</span></td>
+                            <td>
+                                <span class="badge rounded-pill {% if property.status == 'Pending' %}bg-warning text-dark{% elif property.status == 'Live' %}bg-success{% elif property.status == 'Rejected' %}bg-danger{% elif property.status == 'Booked' %}bg-info text-dark{% else %}bg-secondary{% endif %}">
+                                    {{ property.status }}
+                                </span>
+                            </td>
+                            <td class="pe-4 text-end">
+                                <a href="{% url 'owner_property_detail' property.property_id %}" class="btn btn-sm btn-primary shadow-sm fw-bold">
+                                    <i class="bi bi-eye"></i> View Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                                <p class="mb-0 fs-5">You haven't listed any properties yet.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+
+{% block extra_head %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+    #propertyMap { height: 400px; width: 100%; border-radius: 0 0 8px 8px; z-index: 1; }
+    .carousel-item img { height: 400px; object-fit: cover; border-radius: 0 0 8px 8px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Property Details #{{ property.property_id }}</h2>
+    <a href="{% url 'property_catalog' %}" class="btn btn-outline-secondary shadow-sm"><i class="bi bi-arrow-left"></i> Back to Catalog</a>
+</div>
+
+<div class="row g-4 mb-5">
+    <!-- Left Column: Media & Map -->
+    <div class="col-md-7">
+        
+        <!-- Gallery Header -->
+        {% if property.images.all or property.photo %}
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-images text-primary me-2"></i> Property Gallery</h5>
+            </div>
+            <div class="card-body p-0">
+                <div id="propertyCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        {% if property.photo %}
+                        <div class="carousel-item active">
+                            <img src="{{ property.photo.url }}" class="d-block w-100" alt="Main Photo">
+                        </div>
+                        {% endif %}
+                        {% for img in property.images.all %}
+                        <div class="carousel-item {% if not property.photo and forloop.first %}active{% endif %}">
+                            <img src="{{ img.image.url }}" class="d-block w-100" alt="Additional Property Photo">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if property.images.count > 0 or not property.photo and property.images.count > 1 %}
+                    <button class="carousel-control-prev" type="button" data-bs-target="#propertyCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon bg-dark rounded-circle p-2 shadow" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#propertyCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon bg-dark rounded-circle p-2 shadow" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Interactive Map -->
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-geo-alt text-primary me-2"></i> Neighborhood Location</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if property.latitude and property.longitude %}
+                <div id="propertyMap"></div>
+                {% else %}
+                <div class="d-flex align-items-center justify-content-center bg-light text-muted" style="height: 400px; border-radius: 0 0 8px 8px;">
+                    <div class="text-center">
+                        <i class="bi bi-geo-alt-fill fs-1 d-block mb-2"></i>
+                        <p class="mb-0">No precise coordinates provided.</p>
+                        <p class="small">{{ property.address }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Details & Seeker Info -->
+    <div class="col-md-5">
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-house text-primary me-2"></i> Property Specs</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2"><span class="fw-bold text-muted small d-block">Address</span> {{ property.address }}</p>
+                <p class="mb-2"><span class="fw-bold text-muted small d-block">Price / mo</span> <span class="text-success fw-bold fs-5">₹{{ property.price }}</span></p>
+                <p class="mb-0"><span class="fw-bold text-muted small d-block">Status</span> 
+                    <span class="badge rounded-pill {% if property.status == 'Pending' %}bg-warning text-dark{% elif property.status == 'Live' %}bg-success{% elif property.status == 'Rejected' %}bg-danger{% elif property.status == 'Booked' %}bg-info text-dark{% else %}bg-secondary{% endif %} fs-6">
+                        {{ property.status }}
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-person-badge text-primary me-2"></i> Listed By</h5>
+            </div>
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center mb-1">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-5 me-3 shadow-sm" style="width: 45px; height: 45px;">
+                        {{ property.owner.username|make_list|first|upper }}
+                    </div>
+                    <div>
+                        <h6 class="mb-0 fw-bold">{% if property.owner.first_name %}{{ property.owner.first_name }} {{ property.owner.last_name }}{% else %}{{ property.owner.username }}{% endif %}</h6>
+                        <span class="text-muted small"><i class="bi bi-telephone ms-1 me-1"></i> {{ property.owner.phone_number }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if property.status == 'Live' %}
+        <div class="card border-0 shadow-sm rounded-4 mt-4">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-check text-primary me-2"></i> Book This Property</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'seeker_property_detail' property.property_id %}">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-3">
+                        <label for="{{ field.id_for_label }}" class="form-label fw-bold">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}
+                        <div class="form-text">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Dynamic Price Indicator -->
+                    <div class="alert alert-light mt-4 mb-3 border shadow-sm">
+                        <h6 class="fw-bold text-secondary mb-3 border-bottom pb-2" style="font-size: 0.9rem;">Price Breakdown</h6>
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Security Deposit</span>
+                            <span class="fw-bold text-dark" id="calcDeposit">₹--</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Rent (<span id="calcMonths">0</span> months)</span>
+                            <span class="fw-bold text-dark" id="calcRent">₹--</span>
+                        </div>
+                        <hr class="my-2 opacity-25">
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="fw-bold text-dark">Total Amount</span>
+                            <span class="fs-5 fw-bold text-primary" id="dynamicPayable">₹--</span>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold shadow-sm">
+                        <i class="bi bi-credit-card me-2"></i> Confirm Booking
+                    </button>
+                    <div class="form-text text-muted text-center mt-2 small">
+                        <i class="bi bi-lock-fill"></i> Secure payment integration
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% elif property.status == 'Booked' %}
+            {% with booking=property.bookings.first %}
+                {% if booking and booking.seeker == request.user %}
+                <div class="alert alert-success shadow-sm border-0 mt-4 rounded-4 py-3">
+                    <h5 class="fw-bold text-success mb-2"><i class="bi bi-check-circle-fill me-2"></i> You Booked This!</h5>
+                    <p class="mb-1 text-dark small"><i class="bi bi-calendar-event me-2"></i> Duration: {{ booking.duration_months }} months</p>
+                    <p class="mb-0 text-dark small"><i class="bi bi-play-circle me-2"></i> Starts: {{ booking.start_date }}</p>
+                </div>
+                {% else %}
+                <div class="alert alert-info shadow-sm border-0 mt-4 rounded-4">
+                    <i class="bi bi-info-circle-fill me-2"></i> This property is currently booked by someone else.
+                </div>
+                {% endif %}
+            {% endwith %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if property.latitude and property.longitude %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const lat = parseFloat("{{ property.latitude }}");
+        const lng = parseFloat("{{ property.longitude }}");
+        
+        let map = L.map('propertyMap').setView([lat, lng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+        
+        L.marker([lat, lng]).addTo(map).bindPopup("<b>Property Location</b><br>{{ property.address|escapejs }}").openPopup();
+    });
+</script>
+{% endif %}
+
+<!-- Checkout Calculator Logic -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const durationInput = document.getElementById("id_duration_months");
+        const dynamicPayable = document.getElementById("dynamicPayable");
+        const calcDeposit = document.getElementById("calcDeposit");
+        const calcMonths = document.getElementById("calcMonths");
+        const calcRent = document.getElementById("calcRent");
+        const propertyPrice = parseFloat("{{ property.price }}");
+        
+        // Custom logic: Deposit + Months
+        const deposit = propertyPrice; 
+
+        function calculateTotal() {
+            if (!durationInput || !dynamicPayable) return;
+            const months = parseInt(durationInput.value) || 0;
+            if (months >= 1) {
+                const rentTotal = months * propertyPrice;
+                const total = rentTotal + deposit;
+                
+                if(calcDeposit) calcDeposit.textContent = "₹" + deposit.toLocaleString('en-IN');
+                if(calcMonths) calcMonths.textContent = months;
+                if(calcRent) calcRent.textContent = "₹" + rentTotal.toLocaleString('en-IN');
+                dynamicPayable.textContent = "₹" + total.toLocaleString('en-IN');
+            } else {
+                if(calcDeposit) calcDeposit.textContent = "₹--";
+                if(calcMonths) calcMonths.textContent = "0";
+                if(calcRent) calcRent.textContent = "₹--";
+                dynamicPayable.textContent = "₹--";
+            }
+        }
+
+        if (durationInput) {
+            durationInput.addEventListener('input', calculateTotal);
+            durationInput.addEventListener('change', calculateTotal);
+            calculateTotal(); // Calculate existing value on reload
+        }
+    });
+</script>
+{% endblock %}

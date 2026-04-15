@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block extra_head %}
+<style>
+    /* Mimic Razorpay's clean checkout feel */
+    .razorpay-mockup {
+        max-width: 450px;
+        margin: 30px auto 60px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        border: 1px solid #e0e0e0;
+    }
+    .rzp-header {
+        background: #0d2366; /* Razorpay deep blue */
+        color: white;
+        padding: 30px 24px;
+        text-align: center;
+        position: relative;
+    }
+    .rzp-amount {
+        font-size: 2.5rem;
+        font-weight: 800;
+        margin: 15px 0 5px;
+        letter-spacing: -0.5px;
+    }
+    .rzp-info {
+        padding: 24px;
+        background: #fcfcfc;
+        border-bottom: 1px solid #eeeeee;
+    }
+    .rzp-info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 0.95rem;
+    }
+    .rzp-info-row:last-child {
+        margin-bottom: 0;
+    }
+    .rzp-methods {
+        padding: 24px;
+    }
+    .rzp-btn-pay {
+        background: #3399cc;
+        color: white;
+        width: 100%;
+        padding: 15px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        transition: background 0.2s;
+    }
+    .rzp-btn-pay:hover {
+        background: #2b82ad;
+        color: white;
+    }
+    .rzp-btn-cancel {
+        color: #888;
+        width: 100%;
+        background: transparent;
+        border: none;
+        padding: 12px;
+        font-size: 0.95rem;
+        margin-top: 5px;
+    }
+    .rzp-btn-cancel:hover {
+        color: #555;
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container position-relative z-1">
+    <div class="razorpay-mockup">
+        
+        <!-- Header -->
+        <div class="rzp-header">
+            <div class="d-flex align-items-center justify-content-center mb-2">
+                <i class="bi bi-shield-check fs-3 me-2 text-info"></i>
+                <span class="fs-4 fw-bold" style="letter-spacing: 1px;">RZP Secure Checkout™</span>
+            </div>
+            <div class="text-info small mb-3 fw-bold text-uppercase tracking-wide">Test Environment</div>
+            <div class="text-white-50 mb-0">Paying to RealEstate Inc.</div>
+            <div class="rzp-amount">₹{{ booking.total_amount }}</div>
+            <div class="small text-white-50 opacity-75">Transaction REF: TXN_MOCK_{{ booking.booking_id }}892</div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="rzp-info">
+            <div class="fw-bold mb-3 text-dark fs-5">Order Summary</div>
+            <div class="rzp-info-row text-muted">
+                <span>Property Address</span>
+                <span class="text-dark fw-medium text-end" style="max-width: 60%;">{{ booking.property.address|truncatewords:6 }}</span>
+            </div>
+            <div class="rzp-info-row text-muted">
+                <span>Duration</span>
+                <span class="text-dark fw-medium">{{ booking.duration_months }} Months</span>
+            </div>
+            <div class="rzp-info-row text-muted">
+                <span>Start Date</span>
+                <span class="text-dark fw-medium">{{ booking.start_date }}</span>
+            </div>
+            <hr class="my-3 text-muted opacity-25">
+            <div class="rzp-info-row text-primary fw-bold fs-6">
+                <span>Amount Payable</span>
+                <span>₹{{ booking.total_amount }}</span>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="rzp-methods">
+            <div class="d-flex align-items-center bg-light rounded-2 p-3 mb-4 shadow-sm border">
+                <i class="bi bi-credit-card-2-front fs-2 text-primary me-3"></i>
+                <div>
+                    <h6 class="mb-0 fw-bold">Test Card</h6>
+                    <small class="text-muted">xxxx-xxxx-xxxx-0000</small>
+                </div>
+                <div class="ms-auto text-success fw-bold">
+                    <i class="bi bi-check-circle-fill fs-5"></i>
+                </div>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" name="action" value="pay" class="rzp-btn-pay shadow">
+                    Pay ₹{{ booking.total_amount }}
+                </button>
+                <div class="text-center mt-3">
+                    <button type="submit" name="action" value="cancel" class="rzp-btn-cancel">
+                        Cancel & Return to Property
+                    </button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
